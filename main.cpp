@@ -81,8 +81,7 @@ void submaskValid(int mask)
     }
 }
 
-string getBinaryNumber(int num){
-    int number = num;
+string getBinaryNumber(int number){
     if(number == 0)
         return "0";
     string binary = "";
