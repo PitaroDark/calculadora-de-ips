@@ -5,6 +5,7 @@ using namespace std;
 void separateIp(int segments[], string ip);
 void submaskValid(int submask);
 string getBinaryNumber(int num);
+string ipClass(int ip[]);
 
 int main()
 {
@@ -28,6 +29,7 @@ int main()
         if(i != 3)
             cout<<".";
     }
+    cout<<" "<<ipClass(segments);
     cout<<endl;
     return 0;
 }
@@ -99,3 +101,13 @@ string getBinaryNumber(int num){
     return binary;
 }
 
+string ipClass(int ip[]){
+    if(ip[0] >= 1 && ip[0] <= 126)
+        return "Class A";
+    else if(ip[0] >= 128 && ip[0] <= 191)
+        return "Class B";
+    else if(ip[0] >= 192 && ip[0] <= 223)
+        return "Class C";
+    else
+        return "Clase desconocida";
+}
