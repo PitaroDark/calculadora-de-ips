@@ -2,111 +2,141 @@
 
 using namespace std;
 
-void separateIp(int segments[], string ip);
-void submaskValid(int submask);
-string getBinaryNumber(int num);
-string ipClass(int ip[]);
+string getWilcardIp(int mask);
+string getWilcardBinary(int mask);
+string getNetmaskIp(int mask);
+string getNetmaskBinary(int mask);
+string ipToBinaryIp(string ip);
+string binaryIpToIp(string ip);
+string binaryToNumber(string binaryNum);
+string intToBinary(int n);
+bool ipValid(string ip);
+vector<string> split(const string &str, char delim);
+bool isNumber(const string &str);
 
 int main()
 {
-    int segments[4], mask = 0, subMask = 0;
+    int mask = 0, subMask = 0;
     string ip;
 
-    cout << "Ingrese la ip -> ";
-    cin >> ip;
-    separateIp(segments, ip);
-    cout << "Ingrese la submascara actual -> ";
-    cin >> mask;
-    submaskValid(mask);
-    cout << "Ingrese la submascara a convertir -> ";
-    cin >> subMask;
-    submaskValid(subMask);
-    cout<<"Convertir"<<endl;
-    cout<<ip<<"/"<<mask<<" -> "<<subMask<<endl;
-    cout<<"Ip binary -> ";
-    for(int i=0;i<4;i++){
-        cout<<getBinaryNumber(segments[i]);
-        if(i != 3)
-            cout<<".";
-    }
-    cout<<" "<<ipClass(segments);
-    cout<<endl;
+    cout<<"Ingrese la IP -> "; cin >> ip;
+    if(!ipValid(ip)) { cout<<"La Ip es invalida"<<endl; exit(-1); }
+    cout<<"Ingrese la mascara -> "; cin >> mask;
+    if(mask < 1 || mask >32) { cout<<"Mascara invalida"<<endl; exit(-1); }
+    cout<<"Ingrese la submascara a convertir -> "; cin >> subMask;
+    if(subMask < 1 || subMask >32) { cout<<"Submascara invalida"<<endl; exit(-1); }
+    //Muestreo de datos
+    cout<<"Calculando datos..."<<endl;
+    cout<<"Address:\t"<<ip<<"\t\t"<<ipToBinaryIp(ip)<<endl;
+    cout<<"Netmask:\t"<<getNetmaskIp(mask)<<" = "<<mask<<"\t\t"<<getNetmaskBinary(mask)<<endl;
+    cout<<"Wilcard:\t"<<getWilcardIp(mask)<<"\t\t"<<getWilcardBinary(mask)<<endl;
+    cout<<"=>"<<endl;
+    cout<<"Network:\t"<<getNetmaskIp(mask)<<"/"<<mask<<"\t\t"<<getNetmaskBinary(mask)<<endl;
+    cout<<"HostMin:\t"<<"ip"<<"\t\t"<<"binary"<<endl;
     return 0;
 }
 
-void separateIp(int segments[], string ip)
-{
-    string components[4] = {"", "", "", ""};
-    int j = 0, points = 0;
-    for (int i = 0; i < ip.size(); i++)
-    {
-        if (ip[i] == '.')
-        {
-            j++;
-            points++;
-        }
-        else
-        {
-            components[j] += ip[i];
-        }
-    }
-    if (points != 3)
-    {
-        cout << "Ip invalida" << endl;
-        exit(-1);
-    }
-    try
-    {
-        for (int i = 0; i < 4; i++)
-        {
-            segments[i] = stoi(components[i]);
-            if (segments[i] < 0 || segments[i] > 255)
-            {
-                cout << "Ip invalida con rangos invalidos" << endl;
-                exit(-1);
-            }
-        }
-    }
-    catch (invalid_argument const &e)
-    {
-        cout << "Error al convertir" << endl;
-        exit(-1);
-    }
+string getWilcardIp(int mask){
+    return binaryIpToIp(getWilcardBinary(mask));
 }
 
-void submaskValid(int mask)
-{
-    if (mask < 1 || mask > 32)
-    {
-        cout << "Submascara invalida" << endl;
-        exit(-1);
+string getWilcardBinary(int mask){
+    string binaryMask = "", aux = "";
+    int contador = 0;
+    for(int i = 0; i < 32; i++){
+        aux += (i > (mask-1))?"1":"0";
+        contador++;
+        if(contador == 8){
+            binaryMask += aux;
+            if(i != 31)
+                binaryMask += ".";
+            contador = 0;
+            aux = "";
+        }
     }
+    return binaryMask;
 }
 
-string getBinaryNumber(int number){
-    if(number == 0)
-        return "0";
-    string binary = "";
-    while (number>0)
-    {
-        if((number%2) == 0)
-            binary = "0" + binary;
-        else
-            binary = "1" + binary;
-        number = (int)number/2;
-    }
-    for(int i=binary.size()-1;i<7;i++)
-        binary = "0" + binary;
-    return binary;
+string getNetmaskIp(int mask){
+    return binaryIpToIp(getNetmaskBinary(mask));
 }
 
-string ipClass(int ip[]){
-    if(ip[0] >= 1 && ip[0] <= 126)
-        return "Class A";
-    else if(ip[0] >= 128 && ip[0] <= 191)
-        return "Class B";
-    else if(ip[0] >= 192 && ip[0] <= 223)
-        return "Class C";
-    else
-        return "Clase desconocida";
+string getNetmaskBinary(int mask){
+    string binaryMask = "", aux = "";
+    int contador = 0;
+    for(int i = 0; i < 32; i++){
+        aux += (i < mask)?"1":"0";
+        contador++;
+        if(contador == 8){
+            binaryMask += aux;
+            if(i != 31)
+                binaryMask += ".";
+            contador = 0;
+            aux = "";
+        }
+    }
+    return binaryMask;
+}
+
+string ipToBinaryIp(string ip){
+    int counter = 0;
+    vector<string> segments = split(ip, '.');
+    string binaryIp = "";
+    for(string segment : segments){
+        binaryIp += intToBinary(stoi(segment));
+        if(counter != 3)
+            binaryIp += ".";
+        counter++;
+    }
+    return binaryIp;
+}
+
+string binaryIpToIp(string ip){
+    int counter = 0;
+    vector<string> segments = split(ip, '.');
+    string ipConvert = "";
+    for(string segment : segments){
+        ipConvert += binaryToNumber(segment);
+        if(counter != 3)
+            ipConvert += ".";
+        counter++;
+    }
+    return ipConvert;
+}
+
+string binaryToNumber(string binaryNum) {
+    return to_string(stoll(binaryNum, nullptr, 2));
+}
+
+string intToBinary(int n){
+    string r;
+    while(n!=0) {r=(n%2==0 ?"0":"1")+r; n/=2;}
+    return r;
+}
+
+bool ipValid(string ip){
+    vector<string> list = split(ip, '.');
+    if (list.size() != 4)
+        return false;
+    for (string str: list)
+        if (!isNumber(str) || stoi(str) > 255 || stoi(str) < 0)
+            return false;
+    return true;
+}
+
+vector<string> split(const string &str, char delim){
+    auto i = 0;
+    vector<string> list;
+    auto pos = str.find(delim);
+    while (pos != string::npos){
+        list.push_back(str.substr(i, pos - i));
+        i = ++pos;
+        pos = str.find(delim, pos);
+    }
+    list.push_back(str.substr(i, str.length()));
+    return list;
+}
+
+bool isNumber(const string &str){
+    return !str.empty() && (str.find_first_not_of("[0123456789]") == std::string::npos);
 }
